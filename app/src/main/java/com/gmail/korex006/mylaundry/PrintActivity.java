@@ -1,11 +1,28 @@
 package com.gmail.korex006.mylaundry;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
+import android.app.AlertDialog.Builder;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersDetailsTable;
+import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersListTable;
+import com.gmail.korex006.mylaundry.MyLaundryDBContract.PeopleInfoTable;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,56 +32,40 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import android.app.AlertDialog.Builder;
-import android.bluetooth.*;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
-
-import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersDetailsTable;
-import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersListTable;
-import com.gmail.korex006.mylaundry.MyLaundryDBContract.PeopleInfoTable;
-
 
 public class PrintActivity extends AppCompatActivity {
 
     public static final String ORDER_ID = "order_id";
 
-    private Button btn_printJobCard =null;
-    private Button btn_viewJobCard =null;
-    private Button buttonCut=null;
-    private Button buttonConnect=null;
+    private Button btn_printJobCard = null;
+    private Button btn_viewJobCard = null;
+    private Button buttonCut = null;
+    private Button buttonConnect = null;
 
-    private TextView mprintfLog=null;
-    private TextView mTipTextView=null;
+    private TextView mprintfLog = null;
+    private TextView mTipTextView = null;
 
-    private Spinner mSpinner=null;
-    private List<String>mpairedDeviceList=new ArrayList<String>();
+    private Spinner mSpinner = null;
+    private List<String> mpairedDeviceList = new ArrayList<String>();
 
     private BluetoothAdapter mBluetoothAdapter = null;   //��������������
-    private BluetoothSocket mBluetoothSocket=null;
-    OutputStream mOutputStream=null;
+    private BluetoothSocket mBluetoothSocket = null;
+    OutputStream mOutputStream = null;
     /*Hint: If you are connecting to a Bluetooth serial board then try using
      * the well-known SPP UUID 00001101-0000-1000-8000-00805F9B34FB. However
      * if you are connecting to an Android peer then please generate your own unique UUID.*/
     private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    private Builder dialog=null;
+    private Builder dialog = null;
 
-    Set<BluetoothDevice>pairedDevices=null;
+    Set<BluetoothDevice> pairedDevices = null;
     private String jobCardStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_print);
-        this.setTitle(this.getTitle()+"(C)posPrinter");
+        this.setTitle(this.getTitle() + "(C)posPrinter");
 
         setUpUIViews();
         setUPViewsListeners();
@@ -86,7 +87,8 @@ public class PrintActivity extends AppCompatActivity {
                 + custList + "." + PeopleInfoTable.COLUMN_BRANCH + ", "
                 + orderList + "." + OrdersListTable.COLUMN_PICK_UP_DATE + ", "
                 + orderDetails + "." + OrdersDetailsTable.COLUMN_SERVICE + ", "
-                + orderDetails + "." + OrdersDetailsTable.COLUMN_STARCH+ ", "
+                + orderDetails + "." + OrdersDetailsTable.COLUMN_PACKAGING + ", "
+                + orderDetails + "." + OrdersDetailsTable.COLUMN_STARCH + ", "
                 + orderDetails + "." + OrdersDetailsTable.COLUMN_ITEM_TYPE + ", "
                 + orderDetails + "." + OrdersDetailsTable.COLUMN_QUANTITY + ", "
                 + orderDetails + "." + OrdersDetailsTable.COLUMN_PRICE + ", "
@@ -96,7 +98,7 @@ public class PrintActivity extends AppCompatActivity {
                 + " FROM " + orderDetails
                 + " INNER JOIN " + orderList + " USING (" + OrdersListTable.COLUMN_ORDER_ID + ")"
                 + " INNER JOIN " + custList + " USING (" + OrdersListTable.COLUMN_PERSON_ID + ")"
-                + " WHERE " + OrdersDetailsTable.COLUMN_ORDER_ID + " = '" + orderId + "'" ;
+                + " WHERE " + OrdersDetailsTable.COLUMN_ORDER_ID + " = '" + orderId + "'";
 
         Cursor cursor = db.rawQuery(query, null);
 
@@ -121,51 +123,58 @@ public class PrintActivity extends AppCompatActivity {
             String branch = cursor.getString(branchPos);
             String pickUpDate = cursor.getString(pickUpDatePos);
             String service = cursor.getString(servicePos);
+            String packaging = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_PACKAGING));
             String starch = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_STARCH));
             String itemType = cursor.getString(itemTypePos);
             int quantity = Integer.parseInt(cursor.getString(quatityPos));
             totalQty += quantity;
             String price = cursor.getString(pricePos);
-            int netPrice =  Integer.parseInt(cursor.getString(netPricePos));
+            int netPrice = Integer.parseInt(cursor.getString(netPricePos));
             totalAmt += netPrice;
             String deliveryDate = cursor.getString(deliveryDatePos);
 
             if (!isHeadingCreated) {
-                builder.append("\n\tMyLaundry.NG\n"); builder.append("Cust ID : " + custId + "\n");
+                builder.append("\n\tMyLaundry\n");
+                builder.append("(Exinno White Consults: First Bank 2028157922)\n\n");
+                builder.append("Cust ID : " + custId + "\n");
                 builder.append("Cust Name: " + custName + "\n");
                 builder.append("Branch: " + branch + "\n");
                 builder.append("Pickup date: " + pickUpDate + "\n");
                 builder.append("Delivery date: " + deliveryDate + "\n\n");
-                builder.append("Item\tService\tStarch\tPrice\tQty\tNetPrice\n\n");
+                builder.append("Item\tService\tF|H\tStarch\tPrice\tQty\tNetPrice\n\n");
                 isHeadingCreated = true;
             }
 
-            builder.append(itemType + " "); builder.append(service + " ");
-            builder.append(starch + " "); builder.append(price + " ");
-            builder.append(quantity + " "); builder.append(netPrice + " ");
+            builder.append(itemType + " ");
+            builder.append(service + " ");
+            builder.append(packaging + " ");
+            builder.append(starch + " ");
+            builder.append(price + " ");
+            builder.append(quantity + " ");
+            builder.append(netPrice + " ");
             builder.append("\n\n");
         }
         cursor.close();
 
         builder.append("Total Qty: " + totalQty + "\n");
-        builder.append("Total Amount: N " + totalAmt + "\n");
+        builder.append("Total Amount: N " + totalAmt + "\n\n");
         builder.append("Thank you for choosing \nMyLaundry.NG\n\n");
         jobCardStr = builder.toString();
     }
 
-    private void setUpUIViews () {
-        btn_printJobCard =(Button)findViewById(R.id.btn_printJobCard);
-        btn_viewJobCard =(Button)findViewById(R.id.btn_viewJobCard);
-        buttonCut=(Button)findViewById(R.id.ButtonCutPaper);
-        buttonConnect=(Button)findViewById(R.id.btn_Connect);
+    private void setUpUIViews() {
+        btn_printJobCard = (Button) findViewById(R.id.btn_printJobCard);
+        btn_viewJobCard = (Button) findViewById(R.id.btn_viewJobCard);
+        buttonCut = (Button) findViewById(R.id.ButtonCutPaper);
+        buttonConnect = (Button) findViewById(R.id.btn_Connect);
 
-        mSpinner=(Spinner)findViewById(R.id.deviceSpinner);
+        mSpinner = (Spinner) findViewById(R.id.deviceSpinner);
 
-        mprintfLog=(TextView)findViewById(R.id.TextLogs);
-        mTipTextView=(TextView)findViewById(R.id.textTip);
+        mprintfLog = (TextView) findViewById(R.id.TextLogs);
+        mTipTextView = (TextView) findViewById(R.id.textTip);
 
         // Set up bluetooth connect dialog
-        dialog=new Builder(this);
+        dialog = new Builder(this);
         dialog.setTitle("posPrinter hint:");
         dialog.setMessage(getString(R.string.XPrinterhint));
         dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -203,8 +212,8 @@ public class PrintActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
 
         // Set button Listeners
-        mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
-        ButtonListener buttonListener=new ButtonListener();
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        ButtonListener buttonListener = new ButtonListener();
         btn_printJobCard.setOnClickListener(buttonListener);
         btn_viewJobCard.setOnClickListener(buttonListener);
         buttonCut.setOnClickListener(buttonListener);
@@ -212,39 +221,36 @@ public class PrintActivity extends AppCompatActivity {
 
         setButtonEnable(false);
 
-        mSpinner.setOnTouchListener(new Spinner.OnTouchListener(){
+        mSpinner.setOnTouchListener(new Spinner.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 // TODO Auto-generated method stub
-                if (event.getAction()!=MotionEvent.ACTION_UP) {
+                if (event.getAction() != MotionEvent.ACTION_UP) {
                     return false;
                 }
                 try {
-                    if (mBluetoothAdapter==null) {
+                    if (mBluetoothAdapter == null) {
                         mTipTextView.setText(getString(R.string.NotBluetoothAdapter));
                         PrintfLogs(getString(R.string.NotBluetoothAdapter));
-                    }
-                    else if (mBluetoothAdapter.isEnabled()) {
-                        String getName=mBluetoothAdapter.getName();
-                        pairedDevices=mBluetoothAdapter.getBondedDevices();
-                        while (mpairedDeviceList.size()>1) {
+                    } else if (mBluetoothAdapter.isEnabled()) {
+                        String getName = mBluetoothAdapter.getName();
+                        pairedDevices = mBluetoothAdapter.getBondedDevices();
+                        while (mpairedDeviceList.size() > 1) {
                             mpairedDeviceList.remove(1);
                         }
-                        if (pairedDevices.size()==0) {
+                        if (pairedDevices.size() == 0) {
                             dialog.create().show();
                         }
                         for (BluetoothDevice device : pairedDevices) {
                             // Add the name and address to an array adapter to show in a ListView
-                            getName= device.getName() + "#" + device.getAddress();
+                            getName = device.getName() + "#" + device.getAddress();
                             mpairedDeviceList.add(getName);
                         }
-                    }
-                    else {
+                    } else {
                         PrintfLogs("BluetoothAdapter not open...");
                         dialog.create().show();
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // TODO: handle exception
                     Utils.showToastMessage(PrintActivity.this, e.toString());
                 }
@@ -253,7 +259,7 @@ public class PrintActivity extends AppCompatActivity {
         });
     }
 
-    private void PrintfLogs(String logs){
+    private void PrintfLogs(String logs) {
         this.mprintfLog.setText(logs);
     }
 
@@ -268,16 +274,16 @@ public class PrintActivity extends AppCompatActivity {
         finish();
     }
 
-    class ButtonListener implements OnClickListener{
+    class ButtonListener implements OnClickListener {
 
         @Override
         public void onClick(View v) {
 
             switch (v.getId()) {
-                case R.id.btn_Connect:{
-                    String temString=(String) mSpinner.getSelectedItem();
-                    if (mSpinner.getSelectedItemId()!=0) {
-                        if (buttonConnect.getText()!=getString(R.string.Disconnected)) {
+                case R.id.btn_Connect: {
+                    String temString = (String) mSpinner.getSelectedItem();
+                    if (mSpinner.getSelectedItemId() != 0) {
+                        if (buttonConnect.getText() != getString(R.string.Disconnected)) {
                             try {
                                 mOutputStream.close();
                                 mBluetoothSocket.close();
@@ -289,11 +295,11 @@ public class PrintActivity extends AppCompatActivity {
                             }
                             return;
                         }
-                        temString=temString.substring(temString.length()-17);
+                        temString = temString.substring(temString.length() - 17);
                         try {
                             buttonConnect.setText(getString(R.string.Connecting));
                             BluetoothDevice mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(temString);
-                            mBluetoothSocket= mBluetoothDevice.createRfcommSocketToServiceRecord(SPP_UUID);
+                            mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(SPP_UUID);
                             mBluetoothSocket.connect();
                             buttonConnect.setText(getString(R.string.Connected));
                             setButtonEnable(true);
@@ -302,23 +308,22 @@ public class PrintActivity extends AppCompatActivity {
                             PrintfLogs(getString(R.string.Disconnected));
                             buttonConnect.setText(getString(R.string.Disconnected));
                             setButtonEnable(false);
-                            PrintfLogs(getString(R.string.ConnectFailed)+e.toString());
+                            PrintfLogs(getString(R.string.ConnectFailed) + e.toString());
                         }
 
-                    }
-                    else {
+                    } else {
                         PrintfLogs("Pls select a bluetooth device...");
                     }
                 }
                 break;
-                case R.id.btn_printJobCard:{
+                case R.id.btn_printJobCard: {
                     try {
-                        if (jobCardStr.length()==0) {
+                        if (jobCardStr.length() == 0) {
                             PrintfLogs("Pls input print data...");
                         } else {
-                            mOutputStream=mBluetoothSocket.getOutputStream();
-                            mOutputStream.write((jobCardStr+"\n").getBytes("GBK"));
-                            mOutputStream.write(new byte[]{0x0a,0x0a,0x1d,0x56,0x01});
+                            mOutputStream = mBluetoothSocket.getOutputStream();
+                            mOutputStream.write((jobCardStr + "\n").getBytes("GBK"));
+                            mOutputStream.write(new byte[]{0x0a, 0x0a, 0x1d, 0x56, 0x01});
                             mOutputStream.flush();
                             PrintfLogs("Data sent successfully...");
                         }
@@ -326,14 +331,14 @@ public class PrintActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
-                        PrintfLogs(getString(R.string.PrintFaild)+e.getMessage());
+                        PrintfLogs(getString(R.string.PrintFaild) + e.getMessage());
                     }
 
 
                 }
                 break;
-                case R.id.btn_viewJobCard:{
-                    if (jobCardStr.length()==0) {
+                case R.id.btn_viewJobCard: {
+                    if (jobCardStr.length() == 0) {
                         PrintfLogs("Pls input print data...");
                     } else {
                         UtilsDialog utilsDialog = new UtilsDialog(PrintActivity.this);
@@ -342,20 +347,20 @@ public class PrintActivity extends AppCompatActivity {
 
                 }
                 break;
-                case R.id.ButtonCutPaper:{
+                case R.id.ButtonCutPaper: {
                     try {
-                        if (jobCardStr.length()==0) {
+                        if (jobCardStr.length() == 0) {
                             PrintfLogs("Pls input print data...");
                         } else {
-                            mOutputStream=mBluetoothSocket.getOutputStream();
-                            mOutputStream.write(new byte[]{0x0a,0x0a,0x1d,0x56,0x01});
+                            mOutputStream = mBluetoothSocket.getOutputStream();
+                            mOutputStream.write(new byte[]{0x0a, 0x0a, 0x1d, 0x56, 0x01});
                             mOutputStream.flush();
                         }
 
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
-                        PrintfLogs(getString(R.string.CutPaperFaild)+e.getMessage());
+                        PrintfLogs(getString(R.string.CutPaperFaild) + e.getMessage());
                     }
 
                 }

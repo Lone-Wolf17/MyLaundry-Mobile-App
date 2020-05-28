@@ -13,7 +13,6 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.datetime.datePicker
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersDetailsTable
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersListTable
-import java.text.SimpleDateFormat
 import java.util.*
 
 class UtilsDialog(context: Activity) {
@@ -34,10 +33,10 @@ class UtilsDialog(context: Activity) {
                     Utils.updateDateText(date, tv_pickUpDate)
 
                     // Set Delivery date to 3 days later
+                    //TODO: make sure deliery date is 3 WORKING days
                     date.add(Calendar.DAY_OF_YEAR, 3)
                     Utils.updateDateText(date, tv_deliveryDate)
-                }
-                else if (id == R.id.tv_deliveryDate) {
+                } else if (id == R.id.tv_deliveryDate) {
                     laundryOrderActivity.setDeliveryDate(date)
                     Utils.updateDateText(date, tv_deliveryDate)
                 }
@@ -58,14 +57,16 @@ class UtilsDialog(context: Activity) {
         }
     }
 
-    private fun saveOrderConfirmed (pickUpDate: Calendar, deliveryDate: Calendar, totalquantity: String, totalAmt: String) {
+    private fun saveOrderConfirmed(pickUpDate: Calendar, deliveryDate: Calendar, totalquantity: String, totalAmt: String) {
         Utils.hideKeyboard(mContext)
         val tv_personId = mContext.findViewById<TextView>(R.id.tv_personID)
         val personID: String = tv_personId.getText().toString()
-        val dateFormat = SimpleDateFormat(
-                "dd-MM-yyyy", Locale.getDefault())
-        val pickUpDateStr = dateFormat.format(pickUpDate.time)
-        val deliveryDateStr = dateFormat.format(deliveryDate.time)
+//        val dateFormat = SimpleDateFormat(
+//                "dd-MM-yyyy", Locale.getDefault())
+        val pickUpDateStr = Utils.formatDate(pickUpDate)
+//                dateFormat.format(pickUpDate.time)
+        val deliveryDateStr = Utils.formatDate(deliveryDate);
+//                dateFormat.format(deliveryDate.time)
         val orderId = personID + "_" + pickUpDateStr + "_" + deliveryDateStr
         val db = MyLaundryDBHelper(mContext).writableDatabase
         val selection = OrdersListTable.COLUMN_ORDER_ID + " =?"
@@ -102,12 +103,14 @@ class UtilsDialog(context: Activity) {
             val cv = linearLayout.getChildAt(i) as CardView
             val spn_items = cv.findViewById<View>(R.id.spn_item) as Spinner
             val spn_services = cv.findViewById<View>(R.id.spn_service) as Spinner
+            val spn_packaging = cv.findViewById<View>(R.id.spn_packaging) as Spinner
             val spn_starch = cv.findViewById<View>(R.id.spn_starch) as Spinner
             val et_price = cv.findViewById<View>(R.id.et_itemPrice) as EditText
             val tv_netPrice = cv.findViewById<View>(R.id.tv_netPrice) as TextView
             val et_quantity = cv.findViewById<View>(R.id.et_quantity) as EditText
             val itemName = spn_items.selectedItem as String
             val service = spn_services.selectedItem as String
+            val packaging = spn_packaging.selectedItem as String
             val starch = spn_starch.selectedItem as String
             val price = et_price.text.toString()
             val quantity = et_quantity.text.toString()
@@ -116,6 +119,7 @@ class UtilsDialog(context: Activity) {
             itemDetails.put(OrdersDetailsTable.COLUMN_ORDER_ID, orderId)
             itemDetails.put(OrdersDetailsTable.COLUMN_ITEM_TYPE, itemName)
             itemDetails.put(OrdersDetailsTable.COLUMN_SERVICE, service)
+            itemDetails.put(OrdersDetailsTable.COLUMN_PACKAGING, packaging)
             itemDetails.put(OrdersDetailsTable.COLUMN_STARCH, starch)
             itemDetails.put(OrdersDetailsTable.COLUMN_PRICE, price)
             itemDetails.put(OrdersDetailsTable.COLUMN_QUANTITY, quantity)
@@ -144,7 +148,7 @@ class UtilsDialog(context: Activity) {
         }
     }
 
-    fun showJobCardDialog(jobCardStr : String) {
+    fun showJobCardDialog(jobCardStr: String) {
         MaterialDialog(mContext).show {
 //            title(text = "Order Saved successfully!!")
             message(text = jobCardStr)
@@ -191,27 +195,26 @@ class UtilsDialog(context: Activity) {
         }
     }
 
-    fun showOrderExistsDialog(orderId: String, custName:String) {
+    fun showOrderExistsDialog(orderId: String, custName: String) {
         MaterialDialog(mContext).show {
-           title(text = "Order already exists !!")
+            title(text = "Order already exists !!")
             val orderIDSplit = orderId.split("_")
             val message = "An order already exists for " + custName +
-                 "\nPickUp date: " + orderIDSplit[1] +
-                 "\nDelivery date: " + orderIDSplit[2] +
-                    "\n\nDo you want to edit the Order in the Database or edit the " +
-                    "pick up/ delivery date to create an new order"
+                    "\nPickUp date: " + orderIDSplit[1] +
+                    "\nDelivery date: " + orderIDSplit[2] +
+                    "\n\nPlease go to saved order page to edit the existing order or you have to select different pickup/delivery date to continue "
             message(text = message)
-            positiveButton(text = "Edit existing Order") { dialog ->
-                val intent = Intent(mContext, LaundryOrderActivity::class.java)
-                intent.putExtra(PrintActivity.ORDER_ID, orderId)
-                mContext.startActivity(intent)
-                mContext.finish();
-            }
-            negativeButton(text = "Edit Order dates") {
+//            positiveButton(text = "Edit existing Order") { dialog ->
 //                val intent = Intent(mContext, LaundryOrderActivity::class.java)
+//                intent.putExtra(LaundryOrderActivity.EXTRA_ORDER_ID, orderId)
 //                mContext.startActivity(intent)
-//                mContext.finish()
-            }
+//                mContext.finish();
+//            }
+//            negativeButton(text = "Edit Order dates") {
+////                val intent = Intent(mContext, LaundryOrderActivity::class.java)
+////                mContext.startActivity(intent)
+////                mContext.finish()
+//            }
         }
     }
 
@@ -227,7 +230,7 @@ class UtilsDialog(context: Activity) {
                 db.delete(OrdersDetailsTable.TABLE_NAME, selection, selectionArgs)
                 db.delete(OrdersListTable.TABLE_NAME, selection, selectionArgs)
                 mContext.finish()
-                mContext.startActivity( Intent(mContext, SavedOrdersActivity::class.java))
+                mContext.startActivity(Intent(mContext, SavedOrdersActivity::class.java))
 
             }
             negativeButton(text = "No") {

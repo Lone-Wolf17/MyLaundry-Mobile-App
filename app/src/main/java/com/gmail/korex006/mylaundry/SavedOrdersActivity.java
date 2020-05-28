@@ -1,9 +1,5 @@
 package com.gmail.korex006.mylaundry;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
-
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -21,7 +17,10 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersDetailsTable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersListTable;
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.PeopleInfoTable;
 
@@ -53,9 +52,9 @@ public class SavedOrdersActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (cursorAdapter==null) {
+//        if (cursorAdapter==null) {
             handleIntent(getIntent());
-        }
+//        }
 
     }
 

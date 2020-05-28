@@ -1,9 +1,5 @@
 package com.gmail.korex006.mylaundry;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -13,12 +9,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersDetailsTable;
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersListTable;
@@ -162,21 +163,29 @@ public class LaundryOrderActivity extends AppCompatActivity {
             CardView itemCard = inflateCourseCardView();
             final Spinner spn_items = (Spinner) itemCard.findViewById(R.id.spn_item);
             Spinner spn_services = (Spinner) itemCard.findViewById(R.id.spn_service);
+            Spinner spn_packaging = (Spinner) itemCard.findViewById(R.id.spn_packaging);
+            Spinner spn_starch = (Spinner) itemCard.findViewById(R.id.spn_starch);
             final EditText et_price = (EditText) itemCard.findViewById(R.id.et_itemPrice);
 //            final TextView tv_netPrice = (TextView) itemCard.findViewById(R.id.tv_netPrice);
             final EditText et_quantity = (EditText) itemCard.findViewById(R.id.et_quantity);
 
             final List<String> itemsArray = new ArrayList<>(priceDict.keySet());
-            final List<String> servicesArr = Arrays.asList(getResources().getStringArray(R.array.services)) ;
+            final List<String> servicesArr = Arrays.asList(getResources().getStringArray(R.array.services));
+            final List<String> packagingArr = Arrays.asList(getResources().getStringArray(R.array.packaging));
+            final List<String> starchArr = Arrays.asList(getResources().getStringArray(R.array.starch));
 
             String itemType = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_ITEM_TYPE));
             String service = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_SERVICE));
+            String packaging = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_PACKAGING));
+            String starch = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_STARCH));
             String price = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_PRICE));
             String qty = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_QUANTITY));
 //            String netPrice = cursor.getString(cursor.getColumnIndex(OrdersDetailsTable.COLUMN_NET_PRICE));
 
             spn_items.setSelection(itemsArray.indexOf(itemType));
             spn_services.setSelection(servicesArr.indexOf(service));
+            spn_packaging.setSelection(packagingArr.indexOf(packaging));
+            spn_starch.setSelection(starchArr.indexOf(starch));
             et_price.setText(price);
             et_quantity.setText(qty);
             linearLayout.addView(itemCard);
@@ -192,11 +201,28 @@ public class LaundryOrderActivity extends AppCompatActivity {
     }
 
     private void setOrderId() {
+        TextView tv_custName = (TextView) findViewById(R.id.tv_custName);
+        String custName = tv_custName.getText().toString();
         String personId = tv_personId.getText().toString();
-        String pickUpDate = tv_pickUpDate.getText().toString();
-        String deliveryDate = tv_deliveryDate.getText().toString();
-        orderId = personId + "_" + pickUpDate + "_" + deliveryDate;
-        allowSaveOrder();
+        String pickUpDateStr = Utils.formatDate(pickUpDate);
+//                tv_pickUpDate.getText().toString();
+        String deliveryDateStr = Utils.formatDate(deliveryDate);
+//                tv_deliveryDate.getText().toString();
+        orderId = personId + "_" + pickUpDateStr + "_" + deliveryDateStr;
+
+        Button btn_addItem = findViewById(R.id.btn_addItem);
+        Button btn_saveOrder = findViewById(R.id.btn_saveOrder);
+
+        if (!allowSaveOrder()) {
+            btn_addItem.setEnabled(false);
+            btn_saveOrder.setEnabled(false);
+            utilsDialog.showOrderExistsDialog(orderId, custName);
+        } else {
+            // enable the buttons if allowSaveOrder() returns true
+            btn_addItem.setEnabled(true);
+            btn_saveOrder.setEnabled(true);
+        }
+
     }
 
     private boolean allowSaveOrder() {
@@ -213,7 +239,7 @@ public class LaundryOrderActivity extends AppCompatActivity {
             if (isEditOrder && orderId.equals(orderIdBeingEdited)){
                 result =true;
             } else {
-                utilsDialog.showOrderExistsDialog(orderId, custName);
+//                utilsDialog.showOrderExistsDialog(orderId, custName);
                 result = false;
             }
 
@@ -318,15 +344,15 @@ public class LaundryOrderActivity extends AppCompatActivity {
         final EditText et_quantity = (EditText) v.findViewById(R.id.et_quantity);
         final ImageView iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
 
-        iv_delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                CardView parentCardView = (CardView) ((View) iv_delete.getParent()).getParent();
-                linearLayout.removeView(parentCardView);
-                reCalcTotals();
-
-            }
-        });
+//        iv_delete.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                CardView parentCardView = (CardView) ((View) iv_delete.getParent()).getParent();
+//                linearLayout.removeView(parentCardView);
+//                reCalcTotals();
+//
+//            }
+//        });
 
         ArrayAdapter<String> itemsSpnAdapter = new ArrayAdapter<String>(this, R.layout.custom_spinner_item,
                 keys);
@@ -468,6 +494,9 @@ public class LaundryOrderActivity extends AppCompatActivity {
     }
 
     private boolean isValidated() {
+        if (linearLayout.getChildCount() == 0) {
+            return false;
+        }
         for (int i=0; i<linearLayout.getChildCount(); i++) {
             CardView cv = (CardView) linearLayout.getChildAt(i);
             EditText et_quantity = (EditText) cv.findViewById(R.id.et_quantity);

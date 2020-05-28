@@ -12,7 +12,7 @@ import com.gmail.korex006.mylaundry.MyLaundryDBContract.PriceListTable;
 public class MyLaundryDBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "MyLaundryDB";
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 4;
 
     MyLaundryDBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);

@@ -40,10 +40,26 @@
             android:spinnerMode="dropdown"
             android:textAlignment="viewStart"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/spn_starch"
+            app:layout_constraintEnd_toStartOf="@id/spn_packaging"
             app:layout_constraintStart_toEndOf="@+id/spn_item"
             app:layout_constraintTop_toTopOf="@id/spn_item" />
+
+        <Spinner
+            android:id="@+id/spn_packaging"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:entries="@array/packaging"
+            android:maxEms="3"
+            android:padding="1dp"
+            android:spinnerMode="dropdown"
+            android:textAlignment="viewStart"
+            android:textStyle="bold"
+            android:background="@drawable/laundry_activity_text_bg"
+            app:layout_constraintEnd_toStartOf="@id/spn_starch"
+            app:layout_constraintStart_toEndOf="@+id/spn_service"
+            app:layout_constraintTop_toTopOf="@id/spn_item" />
+
 
         <Spinner
             android:id="@+id/spn_starch"
@@ -57,9 +73,8 @@
             android:textAlignment="viewStart"
             android:textStyle="bold"
             android:background="@drawable/laundry_activity_text_bg"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/et_itemPrice"
-            app:layout_constraintStart_toEndOf="@+id/spn_service"
+            app:layout_constraintStart_toEndOf="@+id/spn_packaging"
             app:layout_constraintTop_toTopOf="@id/spn_item" />
 
 
@@ -70,7 +85,6 @@
             android:layout_marginStart="2dp"
             android:inputType="numberSigned"
             android:maxEms="6"
-            android:paddingBottom="4dp"
             android:textAlignment="center"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/et_quantity"
@@ -102,18 +116,18 @@
             android:padding="4dp"
             android:textStyle="bold"
             android:textAlignment="center"
-            app:layout_constraintEnd_toStartOf="@id/iv_delete"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/et_quantity"
             app:layout_constraintTop_toTopOf="@id/spn_item" />
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/iv_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_delete_forever_black_24dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/tv_netPrice"
-            app:layout_constraintTop_toTopOf="@id/spn_item" />
+        <!--        <androidx.appcompat.widget.AppCompatImageView-->
+        <!--            android:id="@+id/iv_delete"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:src="@drawable/ic_delete_forever_black_24dp"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintStart_toEndOf="@id/tv_netPrice"-->
+        <!--            app:layout_constraintTop_toTopOf="@id/spn_item" />-->
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

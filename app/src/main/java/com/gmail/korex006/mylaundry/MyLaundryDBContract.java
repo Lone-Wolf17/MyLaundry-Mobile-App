@@ -72,6 +72,7 @@ class MyLaundryDBContract {
         static final String TABLE_NAME = "ORDERS_Details_TABLE";
         static final String COLUMN_ORDER_ID = "order_id";
         static final String COLUMN_SERVICE = "service_type";
+        static final String COLUMN_PACKAGING = "fold_or_hang";
         static final String COLUMN_STARCH = "starch";
         static final String COLUMN_ITEM_TYPE = "item_type";
         static final String COLUMN_PRICE = "item_price";
@@ -83,6 +84,7 @@ class MyLaundryDBContract {
                 +_ID + " INTEGER PRIMARY KEY" + ", "
                 + COLUMN_ORDER_ID + " TEXT NOT NULL" + ", "
                 + COLUMN_SERVICE + " TEXT NOT NULL" + ", "
+                + COLUMN_PACKAGING + " TEXT NOT NULL" + ", "
                 + COLUMN_STARCH+ " TEXT NOT NULL" + ", "
                 + COLUMN_ITEM_TYPE + " TEXT NOT NULL" + ", "
                 + COLUMN_PRICE + " TEXT NOT NULL" + ", "

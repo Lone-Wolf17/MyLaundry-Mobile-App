@@ -49,4 +49,11 @@ public class Utils {
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
+    public static String formatDate(Calendar date) {
+        //format the date to format used in Database
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "dd-MM-yyyy", Locale.getDefault());
+        return dateFormat.format(date.getTime());
+    }
+
 }
