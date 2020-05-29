@@ -33,8 +33,20 @@ class UtilsDialog(context: Activity) {
                     Utils.updateDateText(date, tv_pickUpDate)
 
                     // Set Delivery date to 3 days later
-                    //TODO: make sure deliery date is 3 WORKING days
-                    date.add(Calendar.DAY_OF_YEAR, 3)
+                    //TODO: make sure delivery date is 3 WORKING days
+                    var numofDays = 3
+                    val dayofWeek = date.get(Calendar.DAY_OF_WEEK)
+                    when (dayofWeek) {
+                        7 -> numofDays = 4 // Saturday
+                        6 -> numofDays = 5 // Friday deliver on Wednesday
+                        5 -> numofDays = 5 // Thursday deliver on Tuesday
+                        else -> {
+                            // On every other day, we give 3 delivery days
+                            numofDays = 3
+                        }
+                    }
+                    date.add(Calendar.DAY_OF_YEAR, numofDays)
+                    laundryOrderActivity.setDeliveryDate(date)
                     Utils.updateDateText(date, tv_deliveryDate)
                 } else if (id == R.id.tv_deliveryDate) {
                     laundryOrderActivity.setDeliveryDate(date)
@@ -53,7 +65,6 @@ class UtilsDialog(context: Activity) {
                 saveOrderConfirmed(pickUpDate, deliveryDate, totalquantity, totalAmt)
             }
             negativeButton(text = "Go Back!")
-
         }
     }
 
@@ -65,14 +76,14 @@ class UtilsDialog(context: Activity) {
 //                "dd-MM-yyyy", Locale.getDefault())
         val pickUpDateStr = Utils.formatDate(pickUpDate)
 //                dateFormat.format(pickUpDate.time)
-        val deliveryDateStr = Utils.formatDate(deliveryDate);
+        val deliveryDateStr = Utils.formatDate(deliveryDate)
 //                dateFormat.format(deliveryDate.time)
         val orderId = personID + "_" + pickUpDateStr + "_" + deliveryDateStr
         val db = MyLaundryDBHelper(mContext).writableDatabase
         val selection = OrdersListTable.COLUMN_ORDER_ID + " =?"
         val selectionArgs = arrayOf(orderId)
-        val cursor = db.query(OrdersListTable.TABLE_NAME, null, selection, selectionArgs, null,
-                null, null)
+        val cursor = db.query(OrdersListTable.TABLE_NAME, null, selection, selectionArgs,
+                null, null, null)
         val orderValues = ContentValues()
         if (cursor.count == 0) {
 
