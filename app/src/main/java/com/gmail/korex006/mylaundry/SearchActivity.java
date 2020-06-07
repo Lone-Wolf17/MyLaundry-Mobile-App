@@ -1,10 +1,5 @@
 package com.gmail.korex006.mylaundry;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -14,7 +9,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.PeopleInfoTable;
+
+import java.util.Objects;
 
 public class SearchActivity extends AppCompatActivity {
     private Button btn_searchName;
@@ -34,7 +36,7 @@ public class SearchActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.tb_genToolBar);
         //toolbar.setTitle(getResources().getString(R.string.cgpa_calc));
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
 
         // set up Drawer
         DrawerUtil.getDrawer(this, toolbar);
@@ -99,7 +101,7 @@ public class SearchActivity extends AppCompatActivity {
         });
         TextView personIdTV = (TextView) v.findViewById(R.id.tv_personID);
         // show an abridged ID $ branch to efficienty manage space
-        String idString = personId.charAt(0) +"-"+ personId.substring(5);
+        String idString = personId.charAt(0) + "-" + personId.substring(5);
         String branchStr = custType + personId.substring(5, 7);
         personIdTV.setText(idString);
         TextView nameTV = (TextView) v.findViewById(R.id.tv_custName);
@@ -109,4 +111,9 @@ public class SearchActivity extends AppCompatActivity {
         return v;
     }
 
+    public void onNewCustClick(View view) {
+        //TODO : Implement New Customer Order
+        Utils.showToastMessage(this, "Info: Coming Soon!! Feature not yet available");
+
+    }
 }

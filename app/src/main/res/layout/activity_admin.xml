@@ -107,7 +107,35 @@
                 android:text="Extract Order details"
                 android:textStyle="bold"
                 android:onClick="onExtractOrderDetailsClick"
-                android:layout_marginTop="32dp"/>
+                android:layout_marginTop="32dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_resetEmailLoginCreds"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        app:cardElevation="3dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cv_extractOrderCsv">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btn_resetEmailLoginCreds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onResetEmailLoginClick"
+                android:text="Reset Official Email &amp; Password"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="32dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

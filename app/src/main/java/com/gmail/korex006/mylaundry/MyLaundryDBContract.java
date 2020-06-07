@@ -15,11 +15,13 @@ class MyLaundryDBContract {
         static final String COLUMN_BRANCH = "branch";
         static final String COLUMN_CUST_TYPE = "cust_type";
         static final String COLUMN_ADDRESS = "address";
+        static final String COLUMN_EMAIL = "email";
         static final String COLUMN_PHONE_NUM = "phone_num";
+        static final String COLUMN_VALID_EMAIL_EXIST = "valid_email_exist";
 
 
         static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("
-                +_ID + " INTEGER PRIMARY KEY" + ", "
+                + _ID + " INTEGER PRIMARY KEY" + ", "
                 + COLUMN_PERSON_ID + " TEXT NOT NULL" + ", "
                 + COLUMN_CUST_NAME + " TEXT" + ", "
                 + COLUMN_TITLE + " TEXT" + ", "
@@ -27,7 +29,9 @@ class MyLaundryDBContract {
                 + COLUMN_BRANCH + " TEXT NOT NULL" + ", "
                 + COLUMN_CUST_TYPE + " TEXT" + ", "
                 + COLUMN_ADDRESS + " TEXT" + ", "
-                + COLUMN_PHONE_NUM + " TEXT"
+                + COLUMN_EMAIL + " TEXT" + ", "
+                + COLUMN_PHONE_NUM + " TEXT" + ", "
+                + COLUMN_VALID_EMAIL_EXIST + " INTEGER NOT NULL DEFAULT 0 "
                 + ")";
     }
 
@@ -53,16 +57,18 @@ class MyLaundryDBContract {
         static final String COLUMN_DELIVERY_DATE = "delivery_date";
         static final String COLUMN_QTY = "total_quantity";
         static final String COLUMN_AMOUNT = "total_amount";
+        static final String COLUMN_EMAIL = "email_sent";
 
 
         static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("
-                +_ID + " INTEGER PRIMARY KEY" + ", "
+                + _ID + " INTEGER PRIMARY KEY" + ", "
                 + COLUMN_ORDER_ID + " TEXT UNIQUE NOT NULL" + ", "
                 + COLUMN_PERSON_ID + " TEXT NOT NULL" + ", "
                 + COLUMN_PICK_UP_DATE + " TEXT NOT NULL" + ", "
                 + COLUMN_DELIVERY_DATE + " TEXT NOT NULL" + ", "
                 + COLUMN_QTY + " TEXT NOT NULL" + ", "
-                + COLUMN_AMOUNT + " TEXT NOT NULL"
+                + COLUMN_AMOUNT + " TEXT NOT NULL" + ", "
+                + COLUMN_EMAIL + " INTEGER NOT NULL DEFAULT 0"
                 + ")";
     }
 

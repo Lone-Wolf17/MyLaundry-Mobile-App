@@ -37,16 +37,17 @@
                 android:onClick="onSearchClick"
                 android:textStyle="bold"
                 android:text="Search by Name"/>
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/et_searchText"
                 android:layout_toEndOf="@id/btn_search_name"
                 android:layout_marginStart="16dp"
-                android:onClick="onSearchClick"
+                android:onClick="onNewCustClick"
                 android:id="@+id/btn_search_id"
                 android:textStyle="bold"
-                android:text="Search by Cust ID"/>
+                android:text="New Customer" />
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>

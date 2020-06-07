@@ -11,7 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -49,17 +49,38 @@ public class LaundryOrderActivity extends AppCompatActivity {
     private boolean isEditOrder;
     private String orderIdBeingEdited;
 
-    public  void setPickUpDate(Calendar pickUpDate) {
+    public void setPickUpDate(Calendar newPickUpDate) {
 
-        LaundryOrderActivity.pickUpDate = pickUpDate;
+        pickUpDate = newPickUpDate;
+
 
         deliveryDate = (Calendar) pickUpDate.clone();
-        deliveryDate.add(Calendar.DAY_OF_YEAR, 3);
+
+
+        // Set Delivery date to 3 days later
+        int numofDays = Utils.calcNumofDeliveryDays(pickUpDate);
+//        int dayofWeek = pickUpDate.get(Calendar.DAY_OF_WEEK);
+//        switch (dayofWeek) {
+//            case 7: numofDays = 4; // Saturday
+//            case 6: numofDays = 5; // Friday deliver on Wednesday
+//            case 5: numofDays = 5; // Thursday deliver on Tuesday
+//            default: numofDays = 3;
+//
+//        }
+//                    val delDate = date.clone()
+        deliveryDate.add(Calendar.DAY_OF_YEAR, numofDays);
+
+//        deliveryDate.add(Calendar.DAY_OF_YEAR, 3);
+//        TextView tv_pickUpDate = findViewById(R.id.tv_pickUpDate);
+//        Utils.updateDateText(pickUpDate, tv_pickUpDate);
         setDeliveryDate(deliveryDate);
+
     }
 
     public void setDeliveryDate(Calendar deliveryDate) {
         LaundryOrderActivity.deliveryDate = deliveryDate;
+//        TextView tv_deliveryDate = findViewById(R.id.tv_pickUpDate);
+//        Utils.updateDateText(deliveryDate, tv_deliveryDate);
     }
 
     private static Calendar pickUpDate;
@@ -131,7 +152,7 @@ public class LaundryOrderActivity extends AppCompatActivity {
         } else if (getIntent().hasExtra(EXTRA_ORDER_ID)) {
             isEditOrder = true;
             orderIdBeingEdited = getIntent().getStringExtra(EXTRA_ORDER_ID);
-            setUpEditOrder(orderIdBeingEdited);
+            setUpEditOrder(Objects.requireNonNull(orderIdBeingEdited));
         }
         Utils.updateDateText(pickUpDate, tv_pickUpDate);
         Utils.updateDateText(deliveryDate, tv_deliveryDate);
@@ -236,12 +257,8 @@ public class LaundryOrderActivity extends AppCompatActivity {
         Cursor cursor = db.query(OrdersListTable.TABLE_NAME, null, selection, selectionArgs,
                 null, null, null);
         if (cursor.getCount() != 0) {
-            if (isEditOrder && orderId.equals(orderIdBeingEdited)){
-                result =true;
-            } else {
-//                utilsDialog.showOrderExistsDialog(orderId, custName);
-                result = false;
-            }
+            //                utilsDialog.showOrderExistsDialog(orderId, custName);
+            result = isEditOrder && orderId.equals(orderIdBeingEdited);
 
         } else {
             result = true;
@@ -342,7 +359,7 @@ public class LaundryOrderActivity extends AppCompatActivity {
         final EditText et_price = (EditText) v.findViewById(R.id.et_itemPrice);
         final TextView tv_netPrice = (TextView) v.findViewById(R.id.tv_netPrice);
         final EditText et_quantity = (EditText) v.findViewById(R.id.et_quantity);
-        final ImageView iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
+        final ImageButton iv_delete = (ImageButton) v.findViewById(R.id.ib_delete);
 
 //        iv_delete.setOnClickListener(new View.OnClickListener() {
 //            @Override

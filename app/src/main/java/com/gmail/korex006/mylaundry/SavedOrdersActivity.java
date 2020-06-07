@@ -13,7 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -29,6 +29,7 @@ import java.util.Objects;
 public class SavedOrdersActivity extends AppCompatActivity {
 
     private CursorAdapter cursorAdapter;
+    private UtilsDialog utilsDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +53,9 @@ public class SavedOrdersActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        if (cursorAdapter==null) {
+        if (cursorAdapter.getCursor() == null) {
             handleIntent(getIntent());
-//        }
+        }
 
     }
 
@@ -69,10 +70,12 @@ public class SavedOrdersActivity extends AppCompatActivity {
                 + orderList + "." + OrdersListTable.COLUMN_PERSON_ID + ", "
                 + orderList + "." + OrdersListTable.COLUMN_ORDER_ID + ", "
                 + custList + "." + PeopleInfoTable.COLUMN_CUST_NAME + ", "
+                + custList + "." + PeopleInfoTable.COLUMN_VALID_EMAIL_EXIST + ", "
                 + orderList + "." + OrdersListTable.COLUMN_QTY + ", "
                 + orderList + "." + OrdersListTable.COLUMN_AMOUNT + ", "
                 + orderList + "." + OrdersListTable.COLUMN_DELIVERY_DATE + ", "
-                + orderList + "." + OrdersListTable.COLUMN_PICK_UP_DATE
+                + orderList + "." + OrdersListTable.COLUMN_PICK_UP_DATE + ", "
+                + orderList + "." + OrdersListTable.COLUMN_EMAIL
 
                 + " FROM " + orderList
                 + " INNER JOIN " + custList + " USING (" + OrdersListTable.COLUMN_PERSON_ID + ")";
@@ -101,43 +104,72 @@ public class SavedOrdersActivity extends AppCompatActivity {
                 public void bindView(View view, Context context, Cursor cursor) {
 
                     // Find fields to populate in inflated template
+
                     TextView tv_custName = (TextView) view.findViewById(R.id.tv_custName);
                     TextView tv_pickupDate = (TextView) view.findViewById(R.id.tv_pickUpDate);
-                    TextView tv_deliveryDate = (TextView) view.findViewById(R.id.tv_deliveryDate);
+                    ImageButton ib_email = (ImageButton) view.findViewById(R.id.ib_email);
                     TextView tv_qty = (TextView) view.findViewById(R.id.tv_qty);
                     TextView tv_amt = (TextView) view.findViewById(R.id.tv_amount);
                     final TextView tv_orderId = (TextView) view.findViewById(R.id.tv_orderID);
-                    ImageView iv_delete = (ImageView) view.findViewById(R.id.iv_delete);
-                    iv_delete.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            String orderId = tv_orderId.getText().toString();
-                            new UtilsDialog(SavedOrdersActivity.this).showDeleteOrderDialog(orderId);
-                        }
-                    });
+                    ImageButton ib_delete = (ImageButton) view.findViewById(R.id.ib_delete);
 
 
                     // Extract properties from cursor
                     final String orderId = cursor.getString(cursor.getColumnIndex(OrdersListTable.COLUMN_ORDER_ID));
                     String custName = cursor.getString(cursor.getColumnIndex(PeopleInfoTable.COLUMN_CUST_NAME));
                     String pickUpDate = cursor.getString(cursor.getColumnIndex(OrdersListTable.COLUMN_PICK_UP_DATE));
-                    String deliveryDate = cursor.getString(cursor.getColumnIndex(OrdersListTable.COLUMN_DELIVERY_DATE));
+                    int validEmailExist = cursor.getInt(cursor.getColumnIndex(PeopleInfoTable.COLUMN_VALID_EMAIL_EXIST));
+                    int emailSent = cursor.getInt(cursor.getColumnIndex(OrdersListTable.COLUMN_EMAIL));
                     String qty = cursor.getString(cursor.getColumnIndex(OrdersListTable.COLUMN_QTY));
                     String amount = cursor.getString(cursor.getColumnIndex(OrdersListTable.COLUMN_AMOUNT));
 
+                    //Order details is made up of orderId, validEmailExist & emailSent inorder
+                    // to reduce reading from database
+                    final String orderDetails = orderId + "--" + validEmailExist + "--" + emailSent;
+
                     // Populate fields with extracted properties
-                    tv_orderId.setText(orderId);
+                    tv_orderId.setText(orderDetails);
                     tv_custName.setText(custName);
                     tv_pickupDate.setText(pickUpDate);
                     tv_qty.setText(qty);
                     tv_amt.setText(amount);
-                    tv_deliveryDate.setText(deliveryDate);
 
+                    // set mail drawable color
+                    if (validEmailExist == 1) {
+                        if (emailSent == 0) {
+                            ib_email.setColorFilter(getResources().getColor(R.color.azure));
+                        } else {
+                            ib_email.setColorFilter(getResources().getColor(R.color.green));
+                        }
+                    } else {
+                        ib_email.setColorFilter(getResources().getColor(R.color.red));
+                    }
+//                    tv_deliveryDate.setText(deliveryDate);
+
+                    ib_delete.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String orderDetails = tv_orderId.getText().toString();
+                            String orderId = orderDetails.split("--")[0];
+                            utilsDialog.showDeleteOrderDialog(orderId);
+                        }
+                    });
+                    ib_email.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String orderDetails = tv_orderId.getText().toString();
+                            String[] orderDetailsArr = orderDetails.split("--");
+                            utilsDialog.showEmailClickedDialog(orderDetailsArr);
+
+                        }
+                    });
                     view.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-
-                            new UtilsDialog(SavedOrdersActivity.this).showsOrderClickDialog(orderId);
+                            String orderDetails = tv_orderId.getText().toString();
+                            String[] orderDetailsArr = orderDetails.split("--");
+                            String orderId = orderDetailsArr[0];
+                            utilsDialog.showsOrderClickDialog(orderId);
                         }
                     });
                 }
@@ -158,6 +190,11 @@ public class SavedOrdersActivity extends AppCompatActivity {
 
         // set up Drawer
         DrawerUtil.getDrawer(this, toolbar);
+
+        // Set up utilsDialog Object
+        utilsDialog = new UtilsDialog(this);
+
+        handleIntent(getIntent());
     }
 
     @Override
@@ -169,10 +206,21 @@ public class SavedOrdersActivity extends AppCompatActivity {
         // Get the SearchView and set the searchable configuration
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
-        searchView.setSubmitButtonEnabled(true);
+//        searchView.setSubmitButtonEnabled(true);
         // Assumes current activity is the searchable activity
+        assert searchManager != null;
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+//        searchView.setIconifiedByDefault(false);// Do not iconify the widget; expand it by default
+        searchView.setOnCloseListener(
+                new SearchView.OnCloseListener() {
+                    @Override
+                    public boolean onClose() {
+                        // Call onNewIntent so as to reset Activity
+                        onNewIntent(new Intent());
+                        return false;
+                    }
+                }
+        );
 
         return true;
     }
@@ -185,4 +233,5 @@ public class SavedOrdersActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 }

@@ -13,9 +13,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class Utils {
+class Utils {
 
-    public static void showToastMessage (Context context, String message) {
+    public static void showToastMessage(Context context, String message) {
         // takes a String parameter and uses the string as the content of a toast message
         Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
         View view = toast.getView();
@@ -46,6 +46,7 @@ public class Utils {
         if (view == null) {
             view = new View(activity);
         }
+        assert imm != null;
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
@@ -54,6 +55,30 @@ public class Utils {
         SimpleDateFormat dateFormat = new SimpleDateFormat(
                 "dd-MM-yyyy", Locale.getDefault());
         return dateFormat.format(date.getTime());
+    }
+
+    public static boolean validateEmail(String s) {
+        String regex = "(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])";
+        return s.toLowerCase().matches(regex);
+    }
+
+    public static int calcNumofDeliveryDays(Calendar pickUpDate) {
+
+        // Set Delivery date to 3 days later
+        int numofDays = 3;
+        int dayofWeek = pickUpDate.get(Calendar.DAY_OF_WEEK);
+        switch (dayofWeek) {
+            case 7:
+                numofDays = 4; // Saturday
+            case 6:
+                numofDays = 5; // Friday deliver on Wednesday
+            case 5:
+                numofDays = 5; // Thursday deliver on Tuesday
+            default:
+                numofDays = 3;
+
+        }
+        return numofDays;
     }
 
 }

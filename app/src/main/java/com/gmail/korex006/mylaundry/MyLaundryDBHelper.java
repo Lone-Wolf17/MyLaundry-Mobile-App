@@ -12,7 +12,7 @@ import com.gmail.korex006.mylaundry.MyLaundryDBContract.PriceListTable;
 public class MyLaundryDBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "MyLaundryDB";
-    private static final int DB_VERSION = 4;
+    private static final int DB_VERSION = 9;
 
     MyLaundryDBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -30,8 +30,10 @@ public class MyLaundryDBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + OrdersDetailsTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + OrdersListTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + PeopleInfoTable.TABLE_NAME);
         db.execSQL(OrdersListTable.SQL_CREATE_TABLE);
         db.execSQL(OrdersDetailsTable.SQL_CREATE_TABLE);
+        db.execSQL(PeopleInfoTable.SQL_CREATE_TABLE);
     }
 
     void cleanTable(SQLiteDatabase db, String tableName) {

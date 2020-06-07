@@ -1,8 +1,5 @@
 package com.gmail.korex006.mylaundry;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,8 +9,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.view.View;
-
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersDetailsTable;
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.OrdersListTable;
@@ -21,11 +20,11 @@ import com.gmail.korex006.mylaundry.MyLaundryDBContract.PeopleInfoTable;
 import com.gmail.korex006.mylaundry.MyLaundryDBContract.PriceListTable;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Objects;
 
 
 public class AdminActivity extends AppCompatActivity {
@@ -73,51 +72,61 @@ public class AdminActivity extends AppCompatActivity {
         StringBuilder builder = new StringBuilder();
 
         try {
-            reader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(personFileUri)));
+            reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(
+                    getContentResolver().openInputStream(personFileUri))));
             String line = "";
             MyLaundryDBHelper dbHelper = new MyLaundryDBHelper(this);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             dbHelper.cleanTable(db, PeopleInfoTable.TABLE_NAME);
             reader.readLine(); // the first line is The table heading
 
-            boolean isSuceesful = true;
+            boolean isSuccessful = true;
 
 
             while ((line = reader.readLine()) != null) {
                 builder.append(line);
-                String[] customer = line.split(cvsSplitBy, -1);
+                String[] custDetailsArr = line.split(cvsSplitBy, -1);
 
                 // Ensure that Person ID, Person Type, Branch & Cust Type are not missing
-                if (customer[0].isEmpty() || customer[3].isEmpty() || customer[4].isEmpty() || customer[5].isEmpty()) {
+                if (custDetailsArr[0].isEmpty() || custDetailsArr[3].isEmpty() || custDetailsArr[4].isEmpty() || custDetailsArr[5].isEmpty()) {
                     dbHelper.cleanTable(db, PeopleInfoTable.TABLE_NAME);
                     Utils.showToastMessage(this,
                             "Error: Please check csv data. Some required data are missing");
-                    isSuceesful = false;
+                    isSuccessful = false;
                     break;
                 } else {
-                    String personType = customer[3];
-                    String branch = customer[4];
-                    String custType = customer[5];
+                    String personType = custDetailsArr[3];
+                    String branch = custDetailsArr[4];
+                    String custType = custDetailsArr[5];
                     String custBranch = custType.equals("MO") && personType.equals("Customer")
                             ? ("Mobile " + branch) : branch;
+                    String email = custDetailsArr[7].toLowerCase();
+
+
+                    int validEmailExists = Utils.validateEmail(email) ? 1 : 0;
 
                     ContentValues peopleInfo = new ContentValues();
-                    peopleInfo.put(PeopleInfoTable.COLUMN_PERSON_ID, customer[0]);
-                    peopleInfo.put(PeopleInfoTable.COLUMN_CUST_NAME, customer[1]);
-                    peopleInfo.put(PeopleInfoTable.COLUMN_TITLE, customer[2]);
-                    peopleInfo.put(PeopleInfoTable.COLUMN_PERSON_TYPE, customer[3]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_PERSON_ID, custDetailsArr[0]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_CUST_NAME, custDetailsArr[1]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_TITLE, custDetailsArr[2]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_PERSON_TYPE, custDetailsArr[3]);
                     peopleInfo.put(PeopleInfoTable.COLUMN_BRANCH, custBranch);
-                    peopleInfo.put(PeopleInfoTable.COLUMN_CUST_TYPE, customer[5]);
-                    peopleInfo.put(PeopleInfoTable.COLUMN_ADDRESS, customer[6]);
-                    peopleInfo.put(PeopleInfoTable.COLUMN_PHONE_NUM, customer[7]);
-                    db.insert(PeopleInfoTable.TABLE_NAME, null, peopleInfo);
-
+                    peopleInfo.put(PeopleInfoTable.COLUMN_CUST_TYPE, custDetailsArr[5]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_ADDRESS, custDetailsArr[6]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_EMAIL, email);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_PHONE_NUM, custDetailsArr[8]);
+                    peopleInfo.put(PeopleInfoTable.COLUMN_VALID_EMAIL_EXIST, validEmailExists);
+                    long rowNum = db.insertOrThrow(PeopleInfoTable.TABLE_NAME, null, peopleInfo);
+                    if (rowNum == -1) {
+                        isSuccessful = false;
+                        break;
+                    }
                 }
 
             }
             db.close();
-            if (isSuceesful) {
-                Utils.showToastMessage(this, "People Database Update successfull");
+            if (isSuccessful) {
+                Utils.showToastMessage(this, "People Database Update successful");
             }
 
 
@@ -134,6 +143,7 @@ public class AdminActivity extends AppCompatActivity {
                 }
             }
       }
+
 
     public void onUpdatePeopleDBClick(View view) {
         if (personFileUri != null) {
@@ -203,7 +213,8 @@ public class AdminActivity extends AppCompatActivity {
         StringBuilder builder = new StringBuilder();
 
         try {
-            reader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(priceFileUri)));
+            reader = new BufferedReader(new InputStreamReader(
+                    Objects.requireNonNull(getContentResolver().openInputStream(priceFileUri))));
             String line = "";
             MyLaundryDBHelper dbHelper = new MyLaundryDBHelper(this);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -460,5 +471,9 @@ public class AdminActivity extends AppCompatActivity {
         } else {
             onSelectFileClick(view);
         }
+    }
+
+    public void onResetEmailLoginClick(View view) {
+        new UtilsDialog(this).resetEmailLoginDialog();
     }
 }
